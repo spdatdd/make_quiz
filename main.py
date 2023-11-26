@@ -224,10 +224,10 @@ class LoginApp(MDApp):
             if len(self.eternal_list)!=0:
                 prepend_data()
         def callback (select_data):
-            # select_data = 'default'
-            # for data in self.eternal_data:
-            #     if data["selected"]:
-            #         select_data = data['text']
+            select_data = 'default'
+            for data in self.eternal_data:
+                if data["selected"]:
+                    select_data = data['text']
             # if select_data != 'default' and not self.load_bai_thi:
             #     self.type_exam = 'eternal'
             #     self.lam_bai_thi(select_data)
