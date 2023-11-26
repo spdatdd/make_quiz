@@ -847,12 +847,12 @@
             pos_hint: {'center_y':.5}
             active: True if app.eternal_refreshing else False
             determinate: True
-    # MDLabel:
-    #     size_hint_y: None
-    #     height: self.texture_size[1]
-    #     text:
-    #         F'''app_data: {len(app.eternal_data)}
-    #         '''
+    MDLabel:
+        size_hint_y: None
+        height: self.texture_size[1]
+        text:
+            F'''app_data: {len(app.eternal_data)}
+            '''
     MDSpinner:
         id: lam_bai_thi
         size_hint: None, None

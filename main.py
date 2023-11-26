@@ -82,7 +82,7 @@ class LoginApp(MDApp):
         # Lưu thay đổi trên server
         self.luu_thong_tin_user()
     
-    def tolog (self, type, name):
+    def tolog (self, type, name=''):
         """Ghi log
         """
         self.logger.append(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} {type} {name}')
@@ -241,6 +241,7 @@ class LoginApp(MDApp):
                     await asynckivy.sleep(0)
                     self.eternal_data.append({
                             "text": dt['ten_bai_thi'],
+                            "id": dt['id'],
                             "chu_de": dt['chu_de'],
                             "selected": False,
                             "callback": lambda x: callback(dt['ten_bai_thi'])
@@ -267,8 +268,15 @@ class LoginApp(MDApp):
             async def generate_card():
                 for dt in self.local_list[self.local_start_idx : self.local_end_idx]:
                     await asynckivy.sleep(0)
-                    self.local_data.append({
+                    try:
+                        id = dt['id']
+                    except Exception as e:
+                        self.tolog(f'{type(e)} {e}')
+                        id = -1
+                    else:
+                        self.local_data.append({
                             "text": dt['ten_bai_thi'],
+                            "id": id,
                             "selected": False,
                             "callback": lambda x: x,
                         })
@@ -360,7 +368,7 @@ class LoginApp(MDApp):
                 if icon == 'magnify':
                     button.bind(on_release=lambda x: self.bottom_appbar_search())
                 if icon == 'refresh':
-                    button.bind(on_release=lambda x: self.bottom_appbar_refresh(root.ids.card_list))
+                    button.bind(on_release=lambda x: self.bottom_appbar_refresh(root))
                 if icon == 'pencil':
                     button.bind(on_release=lambda x: self.chinh_sua_bai_thi('mod'))
 
@@ -374,10 +382,14 @@ class LoginApp(MDApp):
         #     with open(f"{self.current_directory}/data/file_did_exam.json", 'r', encoding='utf-8') as json_file:
         #         self.local_list = json.load(json_file)
         if len(self.local_list) == 0:
-            root.ids.card_list.data.clear()
-            root.ids.card_list.refresh_from_data()
-            self.local_refreshing = False
-            root.ids.refreshLabel.text = ''
+            try:
+                root.ids.card_list.data.clear()
+            except Exception as e:
+                self.tolog(e)
+            else:
+                root.ids.card_list.refresh_from_data()
+                self.local_refreshing = False
+                root.ids.refreshLabel.text = ''
         else:
             self.local_refresh_data()
 
@@ -394,7 +406,6 @@ class LoginApp(MDApp):
         selected_items = [ (index, data) 
             for index, data in enumerate(self.local_data) 
             if data["selected"]]
-        
         if len(selected_items) > 0:
             def delet_selected_item():
                 # Xóa phần tử khỏi danh sách
@@ -402,15 +413,23 @@ class LoginApp(MDApp):
                 self.local_list.pop(selected_items[0][0])
                 # Cập nhật giao diện
                 root.refresh_from_data()
-                data_exam = []
-
-                # Ghi dữ liệu JSON
-                with open(f"{self.current_directory}/file_local_exam.json", 'w', encoding='utf-8') as json_file:
-                    json.dump(self.local_list, json_file, ensure_ascii=False)
-
+                # # Ghi dữ liệu JSON
+                # with open(f"{self.current_directory}/data/file_local_exam.json", 'w', encoding='utf-8') as json_file:
+                #     json.dump(self.local_list, json_file, ensure_ascii=False)
+                # Gửi yêu cầu xóa
+                bai_thi_id = selected_items[0][1]['id']
+                ten_bai_thi = selected_items[0][1]['text']
+                if bai_thi_id != -1:
+                    message = self.make_request(
+                        'https://tieu0luan0tot0nghiep.000webhostapp.com/delete_a_exam.php',
+                        {"ten_bai_thi": ten_bai_thi, "bai_thi_id":bai_thi_id, "user": self.user['username'], "password": self.user['password']},
+                        'text',
+                        'post'
+                    )
+                    if message not in ['completed', 'Không có bài thi!']:
+                        self.tolog("failed_deleted_exam at button bottom delete", selected_items[0][1]['text']+' '+message)
                 dialog.dismiss()
                 self.open_snackbar('Xóa bài thi thành công!')
-
             dialog = MDDialog(
                 text='Bạn có chắc muốn xóa bài thi này?',
                 buttons=[
@@ -668,8 +687,6 @@ class LoginApp(MDApp):
                     dap_an_9_xac.append(c)
                 cau_hoi['dap_an_chinh_xac'] = dap_an_9_xac
                 cau_hoi['cau_hoi'] = cau.ids.CauHoi.text.replace('\xa0', ' ')
-                # Lấy id câu hỏi
-                cau_hoi['id'] = [et_exam['id'] for et_exam in exactly_exam_in_eternal["danh_sach_cau_hoi"] if et_exam['cau_hoi']==cau_hoi['cau_hoi']][0]
                 for dap_an in cau.ids.DapAn.children:
                     if ('Dung' in dap_an.ids and dap_an.ids.Dung.active == True) or 'Dung' not in dap_an.ids:
                         cau_hoi['dap_an'].append(dap_an.ids.CauTraLoiDapAn.text.replace('\xa0', ' '))
@@ -697,6 +714,12 @@ class LoginApp(MDApp):
             # with open(f"{self.current_directory}/file_save_result_exam.json", 'w', encoding='utf-8') as json_file:
             #     json.dump(self.did_exam_list, json_file, ensure_ascii=False)
             # Lưu kết quả lên server
+            if self.type_exam=='local':
+                data = [data for data in self.local_data if data['selected']][0]
+            else:
+                data = [data for data in self.eternal_data if data['selected']][0]
+            ket_qua['id'] = data['id']
+            print(ket_qua)
             message = self.make_request(
                 'https://tieu0luan0tot0nghiep.000webhostapp.com/create_a_result.php',
                 {"data": json.dumps(ket_qua), "user": self.user['username'], "password": self.user['password']},
@@ -705,9 +728,9 @@ class LoginApp(MDApp):
             )
             message = message.strip()
             if message != 'completed':
-                id = ket_qua['id']
                 ten_bai_thi = ket_qua['ten_bai_thi']
-                self.tolog('Failed add result', f'{ten_bai_thi} {id} {message}')
+                id = ket_qua['id']
+                self.tolog('Failed add result', f'{id} {ten_bai_thi} {message}')
             # Đóng dialog
             dialog.dismiss()
             man_hinh_ket_qua = ManHinhKetQua(name="ket_qua_exam")
@@ -877,18 +900,22 @@ class LoginApp(MDApp):
                 "danh_sach_cau_hoi": QuestList            
             }
             if mode == 'add':
-                message = self.make_request(
-                        'https://tieu0luan0tot0nghiep.000webhostapp.com/create_a_exam.php',
-                        {"data": json.dumps(exam.copy()), "user": self.user['username'], "password": self.user['password']},
-                        'json',
-                        'post'
-                    )
-                if message!='not available':
-                    self.local_list.append(message)
+                response = self.make_request(
+                            'https://tieu0luan0tot0nghiep.000webhostapp.com/create_a_exam.php',
+                            {"data": json.dumps(exam.copy()), "user": self.user['username'], "password": self.user['password']},
+                            'json',
+                            'post'
+                        )
+                if response!='not available':
+                    # online 
+                    response_message = response['message'].strip()
+                    if response_message=='compeleted':
+                        self.local_list.append(response['data'])
+                    else:
+                        self.tolog("failed_add_exam", exam['ten_bai_thi']+' '+response_message)
                 else:
+                    # offline 
                     self.local_list.append(exam)
-                # if message.strip() != 'completed':
-                #     self.tolog("failed_add_exam", exam['ten_bai_thi']+' '+message.strip())
                 
             else:
                 # Chưa lưu log cho bài thi chỉnh sửa khi mất kết nối mạng
