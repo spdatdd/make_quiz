@@ -296,7 +296,7 @@
                 icon: "plus-circle"
                 text: "Câu hỏi"
                 elevation: 1
-                size_hint: .25, 1
+                size_hint: .333, 1
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
@@ -312,7 +312,7 @@
                 text: "Đáp án"
                 # adaptive_size: True
                 elevation: 1
-                size_hint: .25, 1
+                size_hint: .333, 1
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
@@ -328,7 +328,7 @@
                 text: "Chèn"
                 # adaptive_size: True
                 elevation: 1
-                size_hint: .25, 1
+                size_hint: .333, 1
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
@@ -339,26 +339,25 @@
                 theme_icon_color: "Custom"
                 icon_color: "white"
                 on_release: app.file_manager_open(root, 'tao_bai_thi')
-            MDRectangleFlatIconButton:
-                icon: "content-save"
-                text: "Lưu"
-                font_style: 'Caption'
-                # font_size: 14
-                # adaptive_size: True
-                elevation: 1
-                size_hint: .25, 1
-                pos_hint: {'center_y': .5}
-                theme_text_color: "Custom"
-                text_color: "white"
-                line_color: app.theme_cls.primary_color
-                md_bg_color: app.theme_cls.primary_color
-                theme_icon_color: "Custom"
-                icon_color: "white"
-                on_release:
-                    app.luu_bai_thi(root.ids.Container.children, root.ids.TenBaiThi.text, root.ids.ChuDe.text, root.mode)
-        MDBoxLayout:
+            # MDRectangleFlatIconButton:
+            #     icon: "content-save"
+            #     text: "Lưu"
+            #     font_style: 'Caption'
+            #     # font_size: 14
+            #     # adaptive_size: True
+            #     elevation: 1
+            #     size_hint: .25, 1
+            #     pos_hint: {'center_y': .5}
+            #     theme_text_color: "Custom"
+            #     text_color: "white"
+            #     line_color: app.theme_cls.primary_color
+            #     md_bg_color: app.theme_cls.primary_color
+            #     theme_icon_color: "Custom"
+            #     icon_color: "white"
+            #     on_release:
+            #         app.luu_bai_thi(root.ids.Container.children, root.ids.TenBaiThi.text, root.ids.ChuDe.text, root.mode)
+        MDRelativeLayout:
             id: saved_questions_layout
-            orientation: 'vertical'
             size_hint_y: .6
             MDScrollView:
                 bar_width: 12
@@ -369,6 +368,12 @@
                     orientation: "vertical"
                     adaptive_height: True
                     padding: '10dp', 0, '10dp', 0
+            MDFloatingActionButton:
+                icon: "content-save"
+                md_bg_color: app.theme_cls.primary_color
+                pos_hint: {"right": .95, "y": .05}
+                elevation: 1
+                on_release: app.luu_bai_thi(root.ids.Container.children, root.ids.TenBaiThi.text, root.ids.ChuDe.text, root.mode)
 
 <CaNhan>:
     # source: ''
