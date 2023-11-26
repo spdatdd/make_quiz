@@ -1,0 +1,981 @@
+#:import MDFabBottomAppBarButton kivymd.uix.toolbar.MDFabBottomAppBarButton
+#:import os os
+<LoginScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: '15dp'
+        padding: '15dp'
+        size_hint: .8, .8
+        pos_hint: {'center_x': .5, 'center_y': .5}
+
+        MDLabel:
+            text: 'Trắc nghiệm'
+            halign: "center"
+            theme_text_color: 'Custom'
+            text_color: 1, 0, 1, 1
+            font_style: 'H4'
+
+        MDTextField:
+            id: username_input
+            hint_text: 'Tài khoản'
+            mode: "rectangle"
+            font_name: 'NotoSans'
+
+        MDTextField:
+            id: password_input
+            hint_text: 'Mật khẩu'
+            password: True
+            mode: "rectangle"
+            font_name: 'NotoSans'
+
+        MDGridLayout:
+            cols: 3
+            orientation: 'rl-tb'
+            spacing: 30, 0
+
+            MDFlatButton:
+                id: Register
+                text: 'Chưa có tài khoản ?'
+                on_press:
+                    app.sm.current = 'register'
+
+            MDRaisedButton:
+                id: Login
+                elevation: 1
+                text: 'Login'
+                on_release: app.login(username_input.text, password_input.text)
+
+<RegisterScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: '15dp'
+        padding: '15dp'
+        size_hint: .8, .8
+        pos_hint: {'center_x': .5, 'center_y': .5}
+
+        MDLabel:
+            text: 'Trắc nghiệm'
+            halign: "center"
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            theme_text_color: 'Custom'
+            text_color: 1, 0, 1, 1
+            font_style: 'H4'
+
+        MDTextField:
+            id: username_input
+            hint_text: 'Tài khoản'
+            mode: "rectangle"
+            font_name: 'NotoSans'
+
+        MDTextField:
+            id: password_input
+            hint_text: 'Mật khẩu'
+            password: True
+            mode: "rectangle"
+            font_name: 'NotoSans'
+
+        MDTextField:
+            id: re_password_input
+            hint_text: 'Nhập lại mật khẩu'
+            password: True
+            mode: "rectangle"
+            font_name: 'NotoSans'
+
+        MDGridLayout:
+            cols: 4
+            orientation: 'rl-tb'
+            spacing: '15dp'
+
+            MDFlatButton:
+                id: Login
+                text: 'Có tài khoản ?'
+                on_press:
+                    app.sm.current = 'login'
+                size_hint: None, None
+                size_x: 300
+
+            MDRaisedButton:
+                id: Register
+                elevation: 1
+                text: 'Register'
+                size_hint: None, None
+                size_x: 300
+                on_release:
+                    app.register(username_input.text, password_input.text, re_password_input.text)
+
+<IconListItem>
+    IconLeftWidget:
+        icon: root.icon
+
+<Choice>:
+    adaptive_height: True
+
+    MDCheckbox:
+        size_hint_x: .1
+        id: Dung
+
+    MDTextField:
+        id: CauTraLoiDapAn
+        adaptive_height: True
+        hint_text: 'Nhập đáp án...'
+        multiline: True
+        font_name: 'M_PLUS_Rounded_1c'
+
+    MDIconButton:
+        icon: 'delete'
+        pos_hint: {'center_y': .5}
+        on_release:  root.parent.remove_widget(root)
+
+<YourThink>:
+    adaptive_height: True
+    padding: 20, 10, 20, 10
+
+    MDTextField:
+        id: CauTraLoiDoan
+        hint_text: 'Điền vào câu trả lời...'
+        multiline: True
+        font_name: 'M_PLUS_Rounded_1c'
+
+    MDIconButton:
+        icon: 'delete'
+        pos_hint: {'center_y': .5}
+        on_release: root.parent.remove_widget(root)
+
+<Question>:
+    adaptive_height: True
+
+    MDTextField:
+        id: CauHoi
+        adaptive_height: True
+        hint_text: 'Nhập câu hỏi...'
+        multiline: True
+        font_name: 'M_PLUS_Rounded_1c'
+
+    MDIconButton:
+        icon: 'delete'
+        pos_hint: {'center_y': .5}
+        on_release: root.parent.remove_widget(root)
+
+<ImageMedia>:
+    adaptive_height: True
+    spacing: "56dp"
+    pos_hint: {"center_x": .5, "center_y": .5}
+
+    MDCard:
+        padding: 4
+        size_hint: 1, None
+        height: self.width/2
+        radius: 0, 0, 0, 0
+
+        MDRelativeLayout:
+            FitImage:
+                id: img
+                source: ''
+            MDIconButton:
+                icon: "delete"
+                pos_hint: {"top": 1, "right": 1}
+                on_release: root.parent.remove_widget(root)
+
+<AudioMedia>:
+    path_txt : ''
+    audio: ''
+    position_progress: 0
+    size_hint: 1, None
+    height: '50dp'
+
+    MDRelativeLayout:
+        MDBoxLayout:
+            id: audioMedia
+            MDIconButton:
+                id: audio
+                icon: "play"
+                pos_hint: {'center_y': .5}
+                theme_icon_color: "Custom"
+                icon_color: app.theme_cls.primary_color
+                on_release: app.start_audio(root)
+
+            MDProgressBar:
+                size_hint: 1, None
+                height: '30dp'
+                pos_hint: {'center_y': .5}
+                id: progress_bar
+                type: 'determinate'
+                value: 0
+
+        MDIconButton:
+            icon: "delete"
+            pos_hint: {"top": 1, "right": 1}
+            on_release:
+                root.parent.remove_widget(root)
+                app.delete_audio(root)
+
+<VideoMedia>:
+    adaptive_height: True
+    spacing: "56dp"
+
+    MDCard:
+        padding: 0
+        size_hint: 1, None
+        height: (self.width/4)*3
+        radius: 0, 0, 0, 0
+
+        MDRelativeLayout:
+
+            VideoPlayer:
+                id: vid
+                source: ""
+                keep_ratio: True
+                options: {'allow_stretch': True}
+                state: 'stop'
+
+            MDIconButton:
+                icon: "delete"
+                theme_text_color: "Error"
+                pos_hint: {"top": 1, "right": 1}
+                on_release:
+                    vid.state = 'stop'
+                    root.parent.remove_widget(root)
+
+<CreateExamScreen>:
+    mode: ''
+    MDBoxLayout:
+        orientation: 'vertical'
+        MDTopAppBar:
+            title: "MDTopAppBar"
+            anchor_title: "left"
+            elevation: 1
+            left_action_items:
+                [["arrow-left", lambda x: app.exit_create_exam(root)]]
+        MDTextField:
+            id: TenBaiThi
+            multiline: True
+            max_text_length: 200
+            size_hint: .95, None
+            pos_hint: {"center_x": .5}
+            max_height: "80dp"
+            adaptive_height: True
+            hint_text: "Tên bài thi"
+            font_name: 'NotoSans'
+        MDBoxLayout:
+            adaptive_height: True
+            spacing: '5dp'
+            padding: '10dp', 0, '10dp', 0
+            MDRectangleFlatIconButton:
+                id: LoaiCauHoi
+                text: "Loại câu hỏi"
+                pos_hint: {"center_y": .5}
+                elevation: 1
+                size_hint: .4, None
+                theme_text_color: "Custom"
+                text_color: "white"
+                line_color: app.theme_cls.primary_dark
+                md_bg_color: app.theme_cls.primary_dark
+                on_release: app.add_loai_cau_hoi(root)
+            MDRectangleFlatIconButton:
+                id: ChuDe
+                text: "Chủ đề"
+                pos_hint: {"center_y": .5}
+                elevation: 1
+                size_hint: .5, None
+                theme_text_color: "Custom"
+                text_color: "white"
+                line_color: app.theme_cls.primary_dark
+                md_bg_color: app.theme_cls.primary_dark
+                on_release: app.add_chu_de(root)
+            MDIconButton:
+                icon: "refresh"
+                elevation: 1
+                size_hint: .1, None
+                pos_hint: {'center_y': .5}
+                on_release: app.lam_moi_trang_tao_bai_thi(root)
+        MDBoxLayout:
+            adaptive_height: True
+            spacing: '5dp'
+            padding: '10dp', 0, '10dp', 0
+            MDRectangleFlatIconButton:
+                icon: "plus-circle"
+                text: "Câu hỏi"
+                elevation: 1
+                size_hint: .25, None
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: "white"
+                font_style: 'Caption'
+                line_color: app.theme_cls.primary_color
+                md_bg_color: app.theme_cls.primary_color
+                theme_icon_color: "Custom"
+                icon_color: "white"
+                on_release: app.add_question(root)
+            MDRectangleFlatIconButton:
+                icon: "plus-circle"
+                text: "Đáp án"
+                adaptive_size: True
+                elevation: 1
+                size_hint: .25, None
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: "white"
+                font_style: 'Caption'
+                line_color: app.theme_cls.primary_color
+                md_bg_color: app.theme_cls.primary_color
+                theme_icon_color: "Custom"
+                icon_color: "white"
+                on_release: app.add_choice_input(root)
+            MDRectangleFlatIconButton:
+                icon: "multimedia"
+                text: "Chèn"
+                adaptive_size: True
+                elevation: 1
+                size_hint: .25, None
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: "white"
+                font_style: 'Caption'
+                line_color: app.theme_cls.primary_color
+                md_bg_color: app.theme_cls.primary_color
+                theme_icon_color: "Custom"
+                icon_color: "white"
+                on_release: app.file_manager_open(root, 'tao_bai_thi')
+            MDRectangleFlatIconButton:
+                icon: "content-save"
+                text: "Lưu"
+                font_style: 'Caption'
+                adaptive_size: True
+                elevation: 1
+                size_hint: .25, None
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: "white"
+                line_color: app.theme_cls.primary_color
+                md_bg_color: app.theme_cls.primary_color
+                theme_icon_color: "Custom"
+                icon_color: "white"
+                on_release:
+                    app.luu_bai_thi(root.ids.Container.children, root.ids.TenBaiThi.text, root.ids.ChuDe.text, root.mode)
+        MDBoxLayout:
+            id: saved_questions_layout
+            orientation: 'vertical'
+            size_hint_y: .6
+            MDScrollView:
+                bar_width: 12
+                bar_color: app.theme_cls.primary_color
+                bar_width: 10
+                MDBoxLayout:
+                    id: Container
+                    orientation: "vertical"
+                    adaptive_height: True
+                    padding: '10dp', 0, '10dp', 0
+
+<CaNhan>:
+    # source: ''
+    taikhoan: app.user['username']
+    matkhau: app.user['password']
+    avatar: app.user['avatar']
+    cols: 1
+    spacing: '15dp'
+    padding: '15dp', 0, '15dp', '30dp'
+    MDBoxLayout:
+        orientation: 'vertical'
+        MDLabel:
+            size_hint: 1, .1
+            text: 'Ảnh đại diện'
+            halign: 'center'
+        MDRelativeLayout:
+            size_hint: 1, .9
+            FitImage:
+                id: img
+                # source: root.source
+                source: root.avatar
+                radius: self.width/2, self.width/2, self.width/2, self.width/2
+                size_hint: .75, 1
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                canvas.before:
+                    Color:
+                        rgba: 0,0,0,.5
+                    Ellipse:
+                        pos: self.pos
+                        size: self.size
+            MDIconButton:
+                icon: "pencil-outline"
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                size_hint: None, None
+                size: '20dp', '20dp'
+                icon_size: 40
+                on_release: app.file_manager_open(root, 'doi_anh_dai_dien')
+    MDTextField:
+        id: TaiKhoan
+        hint_text: "Tài khoản"
+        # text: app.user['new_username']
+        text: root.taikhoan
+        font_name: 'NotoSans'
+        max_text_length: 40
+    MDTextField:
+        id: MatKhau
+        hint_text: "Mật Khẩu"
+        # text: app.user['new_password']
+        text: root.matkhau
+        font_name: 'NotoSans'
+        max_text_length: 40
+    MDRaisedButton:
+        id: Save
+        elevation: 1
+        size_hint_x: 1
+        text: "Lưu"
+        md_bg_color: app.theme_cls.primary_color
+        on_release: app.show_toast_luu_thong_tin(TaiKhoan, MatKhau)
+    MDRaisedButton:
+        id: LogOut
+        elevation: 1
+        size_hint_x: 1
+        text: "Đăng xuất"
+        md_bg_color: "red"
+        on_release: app.logout()
+    MDRaisedButton:
+        id: CloseApp
+        elevation: 1
+        size_hint_x: 1
+        text: "Exit"
+        md_bg_color: "red"
+        on_release: app.stop()
+
+<AudioExam>:
+    id: audioExam
+    path_txt: ''
+    audio: ''
+    position_progress: 0
+    padding: '10dp', 0, '10dp', 0
+
+    MDIconButton:
+        id: audio
+        icon: "play"
+        pos_hint: {'center_y': .5}
+        theme_icon_color: "Custom"
+        icon_color: app.theme_cls.accent_dark
+        on_release: app.start_audio(root)
+
+    MDProgressBar:
+        id: progress_bar
+        size_hint: 1, None
+        height: '30dp'
+        pos_hint: {'center_y': .5}
+
+<DapAnExam>:
+    padding: '10dp', 0, '10dp', 0
+    radius: ['10dp', '10dp', '10dp', '10dp']
+    md_bg_color: app.theme_cls.primary_color
+
+    MDCheckbox:
+        id: Dung
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        size_hint_x: .2
+
+    MDLabel:
+        id: CauTraLoiDapAn
+        halign: 'left'
+        valign: 'center'
+        text: ''
+        font_name: 'M_PLUS_Rounded_1c'
+        text_size: None, None
+
+<DapAnDienExam>:
+    padding: '10dp', 0, '10dp', 0
+    radius: ['10dp', '10dp', '10dp', '10dp']
+    md_bg_color: app.theme_cls.primary_color
+
+    MDTextField:
+        id: CauTraLoiDapAn
+        multiline: True
+        size_hint: 1, 1
+        hint_text: "Câu trả lời"
+        hint_text_color_normal: "black"
+        hint_text_color_focus: "black"
+        text_color_normal: "black"
+        text_color_focus: "black"
+        line_color_normal: app.theme_cls.primary_color
+        line_color_focus: app.theme_cls.primary_color
+        mode: "rectangle"
+        font_name: 'M_PLUS_Rounded_1c'
+
+<TrangThi>:
+    dap_an_chinh_xac: []
+    size_hint: 1, 1
+    orientation: 'vertical'
+    padding: '10dp', 0, '10dp', '10dp'
+    spacing: '10dp'
+
+    MDBoxLayout:
+        id: GiaThiet
+        size_hint: 1, .5
+        orientation: 'vertical'
+        md_bg_color: app.theme_cls.primary_color
+        radius: ['10dp',]
+
+        MDLabel:
+            id: CauHoi
+            size_hint: 1, .3
+            font_name: 'NotoSans'
+
+        MDRelativeLayout:
+            id: Media
+            size_hint: 1, .7
+
+    MDBoxLayout:
+        id: DapAn
+        size_hint: 1, .5
+        orientation: 'vertical'
+        spacing: 10
+        padding: 0, 0, 0, '10dp'
+
+<DoExam>:
+    name_exam: ''
+    mang_cau_hoi: []
+    tong_cau_hoi: 0
+
+    MDBoxLayout:
+        size_hint: 1, 1
+        orientation: 'vertical'
+
+        MDRelativeLayout:
+            size_hint: 1, .05
+
+            MDIconButton:
+                id: GoOut
+                size_hint: .15, 1
+                pos_hint: {'x': 0}
+                icon: 'arrow-left'
+                on_release: app.exit_exam(root)
+
+            MDLabel:
+                id: STTCauHoi
+                size_hint: .25, 1
+                pos_hint: {'x': .25}
+                text: f'01/'+f'{root.tong_cau_hoi}'.zfill(2)
+
+            MDLabel:
+                id: Time
+                size_hint: .25, 1
+                pos_hint: {'x': .5}
+                text: ''
+                theme_text_color: 'ContrastParentBackground'
+
+            MDFlatButton:
+                id: Finish_Exam
+                size_hint: .25, 1
+                pos_hint: {'right': 1}
+                text: "Hoàn Thành"
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.primary_color
+                on_release: app.finish_exam(root)
+
+        MDCarousel:
+            id: Container
+            size_hint: 1, .95
+            direction: 'right'
+            on_slide_complete:
+                root.ids.STTCauHoi.text=f'{self.index + 1}'.zfill(2)+'/'+f'{root.tong_cau_hoi}'.zfill(2)
+
+<UserCard>
+    orientation: "vertical"
+    adaptive_height: True
+    md_bg_color: app.theme_cls.primary_color if self.selected else "#e6e6e6"
+    radius: 16
+    padding: 0, "16dp", 0, "16dp"
+    MDLabel:
+        text: root.text
+        adaptive_height: True
+        padding: "16dp", 0, "16dp", 0
+        shorten: True
+        shorten_from: "right"
+
+<List_Exam>:
+    orientation: 'vertical'
+    spacing: "5dp"
+    MDSegmentedButton:
+        id: segment
+        size_hint: 1, .05
+        on_marked: app.local_list_on_marked(root, *args)
+        MDSegmentedButtonItem:
+            id: created
+            text: "Đã tạo"
+        MDSegmentedButtonItem:
+            text: "Đã làm"
+    MDRelativeLayout:
+        size_hint: 1, .85
+        FixedRecycleView:
+            id: card_list
+            viewclass: "UserCard"
+            data: app.local_data
+            scrollable_distance: box.height - self.height
+            do_scroll_x: False
+            do_scroll_y: True
+            on_scroll_y: app.local_check_pull_refresh(self, box)
+            bar_color: app.theme_cls.primary_color
+            bar_width: 10
+            SelectableRecycleGridLayout:
+                id: box
+                orientation: 'vertical'
+                spacing: "10dp"
+                default_size: None, dp(50)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+        MDBoxLayout:
+            pos_hint: {"top": 1, 'center_x':.5}
+            adaptive_size: True
+            spacing: '5dp'
+            MDLabel:
+                id: refreshLabel
+                opacity: 1 if app.local_refreshing or card_list.scroll_y < 0 else 0
+                size_hint: None, None
+                pos_hint: {'center_y':.5}
+                adaptive_size: True
+                halign: 'center'
+                text: 'Đang tải dữ liệu...' if app.local_refreshing else 'Vuốt lên để tải dữ liệu!'
+            MDSpinner:
+                size_hint: None, None
+                size: '20dp', '20dp'
+                pos_hint: {'center_y':.5}
+                active: True if app.local_refreshing else False
+                determinate: True
+        MDLabel:
+            size_hint_y: None
+            height: self.texture_size[1]
+            text:
+                F'''app_data: {len(app.local_data)}
+                '''
+        MDSpinner:
+            id: LoadBaiThi
+            size_hint: None, None
+            size: dp(60), dp(60)
+            line_width: dp(4)
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            active: True if app.load_bai_thi else False
+            determinate: True
+    MDBottomAppBar:
+        id: bottom_appbar
+        elevation: 1
+        size_hint: 1, .1
+        MDFabBottomAppBarButton:
+            icon: "plus"
+            adaptive_size: True
+            md_bg_color: "#373A22"
+            on_release: app.chinh_sua_bai_thi('add')
+
+<ManHinhKetQua>:
+    ten_bai_thi: ''
+
+    MDRelativeLayout:
+        orientation: 'vertical'
+
+        MDIconButton:
+            icon: "arrow-left"
+            pos_hint: {"x": 0, "top": 1}
+            on_release: app.exit_man_hinh_ket_qua(root)
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: .75,.6
+            pos_hint: {'center_x': .5, 'center_y': .6}
+            spacing: '10dp'
+
+            MDLabel:
+                text: 'Kết quả'
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                adaptive_size: True
+                valign: 'center'
+                halign: 'center'
+                font_style: 'H4'
+                theme_text_color: 'Primary'
+
+            MDRelativeLayout:
+                FitImage:
+                    id: img
+                    radius: self.width/2, self.width/2, self.width/2, self.width/2
+                    canvas.before:
+                        Color:
+                            rgba: app.theme_cls.accent_color
+                        Ellipse:
+                            pos: self.pos
+                            size: self.size
+
+                MDLabel:
+                    id: ket_qua
+                    text: ''
+                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    adaptive_size: True
+                    valign: 'center'
+                    halign: 'center'
+                    font_style: 'H2'
+                    theme_text_color: 'Primary'
+
+            MDFlatButton:
+                text: "Xem chi tiết"
+                theme_text_color: "Primary"
+                font_style: 'H6'
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                on_release: app.xem_chi_tiet_ket_qua_thi(root.ten_bai_thi)
+
+<ManHinhChiTietKetQua>:
+    mang_cau_hoi: []
+    tong_cau_hoi: 0
+
+    MDBoxLayout:
+        size_hint: 1, 1
+        orientation: 'vertical'
+
+        MDRelativeLayout:
+            size_hint: 1, .05
+
+            MDIconButton:
+                id: GoOut
+                size_hint: .15, 1
+                pos_hint: {'x': 0}
+                icon: 'arrow-left'
+                on_release:
+                    app.sm.current = 'ket_qua_exam'
+
+            MDLabel:
+                id: STTCauHoi
+                size_hint: .25, 1
+                pos_hint: {'x': .25}
+                text: f'01/'+f'{root.tong_cau_hoi}'.zfill(2)
+
+            MDLabel:
+                id: Time
+                size_hint: .25, 1
+                pos_hint: {'x': .5}
+                text: ''
+                theme_text_color: 'ContrastParentBackground'
+
+        MDCarousel:
+            id: Container
+            size_hint: 1, .95
+            direction: 'right'
+            on_slide_complete:
+                root.ids.STTCauHoi.text=f'{self.index + 1}'.zfill(2)+'/'+f'{root.tong_cau_hoi}'.zfill(2)
+
+<HomeCard>:
+    orientation: "vertical"
+    md_bg_color: "#e6e6e6"
+    md_bg_color: "#b3b3b3" if self.selected else "#e6e6e6"
+    radius: 16
+    MDBoxLayout:
+        padding: '10dp'
+        MDLabel:
+            id: label
+            text: root.text
+            markup: True
+            color: "grey"
+            bold: True
+            halign: 'left'
+            valign: 'top'
+            text_size: None, None
+            font_name: 'NotoSans'
+    MDRelativeLayout:
+        adaptive_height: True
+        MDRelativeLayout:
+            size_hint: .2, None
+            FitImage:
+                id: img
+                source: 'assets/images/image.jpeg'
+                radius: self.width/2, self.width/2, self.width/2, self.width/2
+                size_hint: .75, .75
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                canvas.before:
+                    Color:
+                        rgba: 0,0,0,.5
+                    Ellipse:
+                        pos: self.pos
+                        size: self.size
+
+<ManHinhHome>:
+    MDTopAppBar:
+        id: topBar
+        size_hint: 1, .1
+        elevation: 1
+        pos_hint: {"top": 1}
+        left_action_items: [["menu", lambda x: nav_drawer.set_state("open")]]
+    FixedRecycleView:
+        id: eternal_list
+        viewclass: "HomeCard"
+        size_hint: 1, .89
+        pos_hint: {"center_x": .5}
+        data: app.eternal_data
+        scrollable_distance: box.height - self.height
+        do_scroll_x: False
+        do_scroll_y: True
+        on_scroll_y: app.eternal_check_pull_refresh(self, box)
+        bar_color: app.theme_cls.primary_color
+        bar_width: 10
+        SelectableRecycleGridLayout:
+            id: box
+            orientation: 'vertical'
+            spacing: '5dp'
+            size_hint_y: None
+            height: self.minimum_height
+            default_size_hint: 1, None
+            default_size: None, dp(150)
+    MDBoxLayout:
+        pos_hint: {"top": .88, 'center_x':.5}
+        adaptive_size: True
+        spacing: '5dp'
+        MDLabel:
+            id: refreshLabel
+            opacity: 1 if app.eternal_refreshing or eternal_list.scroll_y < 0 else 0
+            size_hint: None, None
+            pos_hint: {'center_y':.5}
+            adaptive_size: True
+            halign: 'center'
+            text: 'Đang tải dữ liệu...' if app.eternal_refreshing else 'Vuốt lên để tải dữ liệu!'
+        MDSpinner:
+            size_hint: None, None
+            size: '20dp', '20dp'
+            pos_hint: {'center_y':.5}
+            active: True if app.eternal_refreshing else False
+            determinate: True
+    MDLabel:
+        size_hint_y: None
+        height: self.texture_size[1]
+        text:
+            F'''app_data: {len(app.eternal_data)}
+            '''
+    MDSpinner:
+        id: lam_bai_thi
+        size_hint: None, None
+        size: dp(60), dp(60)
+        line_width: dp(4)
+        pos_hint: {'center_x': .5, 'center_y': .5}
+        active: True if app.load_bai_thi else False
+        determinate: True
+    MDNavigationLayout:
+        MDNavigationDrawer:
+            id: nav_drawer
+            radius: (0, 0, 0, 0)
+            state: 'open'
+            MDNavigationDrawerMenu:
+                MDNavigationDrawerLabel:
+                    text: "Chủ đề"
+                MDNavigationDrawerItem:
+                    text: "All"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Khoa học"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: 'Kinh tế pháp luật'
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Lịch sử"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Ngữ văn"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Toán"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Vật lí"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Địa lí"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Hóa học"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Tiếng Anh"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Tiếng việt"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Tự nhiên và xã hội"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: 'Âm nhạc'
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Đạo đức"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Giải trí"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Công dân"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: 'Quốc phòng an ninh'
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: 'Công nghệ'
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: 'Tin học'
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+                MDNavigationDrawerItem:
+                    text: "Khác"
+                    on_release:
+                        app.chu_de_home(self.text)
+                        nav_drawer.status = 'closed'
+
+<BottomNavigation>:
+    MDBottomNavigation:
+        id: mdBottomNav
+        selected_color_background: app.theme_cls.primary_color
+        text_color_active: 0, 0, 0, 1
+        MDBottomNavigationItem:
+            name: 'Home'
+            text: 'Home'
+            icon: 'home'
+            on_tab_press: app.danh_sach_bai_thi_home()
+            ManHinhHome:
+        MDBottomNavigationItem:
+            name: 'danh sach bai thi'
+            text: 'Kho lưu trữ'
+            icon: 'library'
+            on_tab_press:
+                if len(app.local_data) == 0: self.children[0].ids.segment.mark_item(self.children[0].ids.created)
+            List_Exam:
+        MDBottomNavigationItem:
+            name: 'ca nhan'
+            text: 'Cá nhân'
+            icon: 'account'
+            CaNhan:
