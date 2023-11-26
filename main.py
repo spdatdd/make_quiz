@@ -148,6 +148,7 @@ class LoginApp(MDApp):
                 return result
         else:
             self.tolog(f"failed {url}", " ")
+            return 'not available'
 
     def show_toast_luu_thong_tin(self, taikhoan, matkhau):
         self.user['new_username'] = taikhoan.text
@@ -528,33 +529,37 @@ class LoginApp(MDApp):
                 # Biểu tượng load
                 self.load_bai_thi = True
                 # Đặt giá trị cho widget chỉnh sửa bài thi
-                selected_exam_in_data = [dl for dl in self.local_list if dl['ten_bai_thi']==select_data]
-                Exam_screen.ids.TenBaiThi.text = selected_exam_in_data[0]['ten_bai_thi']
-                Exam_screen.ids.ChuDe.text = selected_exam_in_data[0]['chu_de']
-                # Lấy danh sách câu hỏi
-                array_ques = selected_exam_in_data[0]['danh_sach_cau_hoi']
-                # array_ques.reverse()
-                async def gennerate_data():
-                    for i in range(len(array_ques)):
-                        await asynckivy.sleep(0)
-                        ques = Question()
-                        ques.ids.CauHoi.text = self.LatexNodes2Text.latex_to_text(array_ques[i]['cau_hoi'])
-                        Exam_screen.ids.Container.add_widget(ques)
-                        # array_ques[i]['dap_an'].reverse()
-                        if len( array_ques[i]['dap_an']) > 0:
-                            for dt in array_ques[i]['dap_an']:
-                                choice = Choice()
-                                choice.ids.CauTraLoiDapAn.text = self.LatexNodes2Text.latex_to_text(dt)
-                                if dt in array_ques[i]['dap_an_9_xac']:
-                                    choice.ids.Dung.active = True
-                                Exam_screen.ids.Container.add_widget(choice)
-                        else:
-                            think_choice  = YourThink()
-                            Exam_screen.ids.Container.add_widget(think_choice)
-                    self.sm.add_widget(Exam_screen)
-                    self.sm.current = 'create_exam'
-                    self.load_bai_thi = False
-                Clock.schedule_once(lambda x: asynckivy.start(gennerate_data()))
+                try:
+                    selected_exam_in_data = [dl for dl in self.local_list if dl['ten_bai_thi']==select_data]
+                except:
+                    print(self.local_list)
+                else:
+                    Exam_screen.ids.TenBaiThi.text = selected_exam_in_data[0]['ten_bai_thi']
+                    Exam_screen.ids.ChuDe.text = selected_exam_in_data[0]['chu_de']
+                    # Lấy danh sách câu hỏi
+                    array_ques = selected_exam_in_data[0]['danh_sach_cau_hoi']
+                    # array_ques.reverse()
+                    async def gennerate_data():
+                        for i in range(len(array_ques)):
+                            await asynckivy.sleep(0)
+                            ques = Question()
+                            ques.ids.CauHoi.text = self.LatexNodes2Text.latex_to_text(array_ques[i]['cau_hoi'])
+                            Exam_screen.ids.Container.add_widget(ques)
+                            # array_ques[i]['dap_an'].reverse()
+                            if len( array_ques[i]['dap_an']) > 0:
+                                for dt in array_ques[i]['dap_an']:
+                                    choice = Choice()
+                                    choice.ids.CauTraLoiDapAn.text = self.LatexNodes2Text.latex_to_text(dt)
+                                    if dt in array_ques[i]['dap_an_9_xac']:
+                                        choice.ids.Dung.active = True
+                                    Exam_screen.ids.Container.add_widget(choice)
+                            else:
+                                think_choice  = YourThink()
+                                Exam_screen.ids.Container.add_widget(think_choice)
+                        self.sm.add_widget(Exam_screen)
+                        self.sm.current = 'create_exam'
+                        self.load_bai_thi = False
+                    Clock.schedule_once(lambda x: asynckivy.start(gennerate_data()))
         if type=='add':
             self.sm.add_widget(Exam_screen)
             self.sm.current = 'create_exam'
@@ -878,7 +883,10 @@ class LoginApp(MDApp):
                         'json',
                         'post'
                     )
-                self.local_list.append(message)
+                if message!='not available':
+                    self.local_list.append(message)
+                else:
+                    self.local_list.append(exam)
                 # if message.strip() != 'completed':
                 #     self.tolog("failed_add_exam", exam['ten_bai_thi']+' '+message.strip())
                 
@@ -891,17 +899,27 @@ class LoginApp(MDApp):
                     'post'
                 )
                 if message=='completed' or 'Không có bài thi!':
-                    message = self.make_request(
+                    response = self.make_request(
                             'https://tieu0luan0tot0nghiep.000webhostapp.com/create_a_exam.php',
                             {"data": json.dumps(exam.copy()), "user": self.user['username'], "password": self.user['password']},
                             'json',
                             'post'
                         )
-                    for index, dl in enumerate(self.local_list):
-                        if dl['ten_bai_thi'] == TenBaiThi:
-                            self.local_list[index] = message
-                    # if message.strip() != 'completed':
-                    #     self.tolog("failed_add_exam", exam['ten_bai_thi']+' '+message.strip())
+                    if response!='not available':
+                        # online 
+                        response_message = response['message'].strip()
+                        if response_message=='compeleted':
+                            for index, dl in enumerate(self.local_list):
+                                if dl['ten_bai_thi'] == TenBaiThi:
+                                    self.local_list[index] = response['data']
+                        else:
+                            self.tolog("failed_add_exam", exam['ten_bai_thi']+' '+response_message)
+                    else:
+                        # offline 
+                        for index, dl in enumerate(self.local_list):
+                            if dl['ten_bai_thi'] == TenBaiThi:
+                                self.local_list[index] = exam
+                        self.tolog("failed_add_exam online", exam['ten_bai_thi'])
                 else:
                     self.tolog("failed_deleted_exam", exam['ten_bai_thi']+' '+message)
                 

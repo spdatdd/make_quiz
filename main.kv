@@ -300,7 +300,8 @@
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
-                font_style: 'Caption'
+                # font_style: 'Caption'
+                font_size: 14
                 line_color: app.theme_cls.primary_color
                 md_bg_color: app.theme_cls.primary_color
                 theme_icon_color: "Custom"
@@ -315,7 +316,8 @@
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
-                font_style: 'Caption'
+                # font_style: 'Caption'
+                font_size: 14
                 line_color: app.theme_cls.primary_color
                 md_bg_color: app.theme_cls.primary_color
                 theme_icon_color: "Custom"
@@ -330,7 +332,8 @@
                 pos_hint: {'center_y': .5}
                 theme_text_color: "Custom"
                 text_color: "white"
-                font_style: 'Caption'
+                # font_style: 'Caption'
+                font_size: 14
                 line_color: app.theme_cls.primary_color
                 md_bg_color: app.theme_cls.primary_color
                 theme_icon_color: "Custom"
@@ -339,7 +342,8 @@
             MDRectangleFlatIconButton:
                 icon: "content-save"
                 text: "Lưu"
-                font_style: 'Caption'
+                # font_style: 'Caption'
+                font_size: 14
                 adaptive_size: True
                 elevation: 1
                 size_hint: .25, None
@@ -372,8 +376,8 @@
     matkhau: app.user['password']
     avatar: app.user['avatar']
     cols: 1
-    spacing: '15dp'
-    padding: '15dp', 0, '15dp', '30dp'
+    spacing: '5dp'
+    padding: '15dp', 0, '15dp', 0
     MDBoxLayout:
         orientation: 'vertical'
         MDLabel:
@@ -761,6 +765,7 @@
     radius: 16
     MDBoxLayout:
         padding: '10dp'
+        size_hint: 1, .6
         MDLabel:
             id: label
             text: root.text
@@ -773,8 +778,10 @@
             font_name: 'NotoSans'
     MDRelativeLayout:
         adaptive_height: True
+        # md_bg_color: 1,0,1,1
+        size_hint: 1, .4
         MDRelativeLayout:
-            size_hint: .2, None
+            size_hint: .2, 1
             FitImage:
                 id: img
                 source: 'assets/images/image.jpeg'
@@ -833,12 +840,12 @@
             pos_hint: {'center_y':.5}
             active: True if app.eternal_refreshing else False
             determinate: True
-    MDLabel:
-        size_hint_y: None
-        height: self.texture_size[1]
-        text:
-            F'''app_data: {len(app.eternal_data)}
-            '''
+    # MDLabel:
+    #     size_hint_y: None
+    #     height: self.texture_size[1]
+    #     text:
+    #         F'''app_data: {len(app.eternal_data)}
+    #         '''
     MDSpinner:
         id: lam_bai_thi
         size_hint: None, None
