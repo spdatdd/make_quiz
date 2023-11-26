@@ -239,13 +239,19 @@ class LoginApp(MDApp):
             async def generate_card():
                 for dt in self.eternal_list[self.eternal_start_idx : self.eternal_end_idx]:
                     await asynckivy.sleep(0)
-                    self.eternal_data.append({
-                            "text": dt['ten_bai_thi'],
-                            "id": dt['id'],
-                            "chu_de": dt['chu_de'],
-                            "selected": False,
-                            "callback": lambda x: callback(dt['ten_bai_thi'])
-                        })
+                    try:
+                        id = dt['id']
+                    except Exception as e:
+                        self.tolog(f'{type(e)} {e}')
+                        id = -1
+                    else:
+                        self.eternal_data.append({
+                                "text": dt['ten_bai_thi'],
+                                "id": id,
+                                "chu_de": dt['chu_de'],
+                                "selected": False,
+                                "callback": lambda x: callback(dt['ten_bai_thi'])
+                            })
                 self.eternal_refreshing = False
                 self.eternal_start_idx = self.eternal_end_idx
                 self.eternal_end_idx = self.eternal_end_idx + 30
