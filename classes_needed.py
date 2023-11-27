@@ -63,6 +63,7 @@ class DoExam(MDScreen):
 
 class TrangThi(MDBoxLayout):
     dap_an_chinh_xac = ListProperty([])
+    id_cau_hoi = NumericProperty()
 
 class DapAnExam(MDBoxLayout):
     pass

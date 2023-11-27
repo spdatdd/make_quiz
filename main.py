@@ -34,12 +34,6 @@ class LoginApp(MDApp):
         # đăng ký font name
         LabelBase.register(name='NotoSans', fn_regular='assets/fonts/NotoSans-Regular.ttf')
         LabelBase.register(name='M_PLUS_Rounded_1c', fn_regular='assets/fonts/M_PLUS_Rounded_1c/MPLUSRounded1c-Regular.ttf')
-        # load danh sách kết quả bài thi đã làm
-        with open(f"{self.current_directory}/data/file_save_result_exam.json", 'r', encoding='utf-8') as json_file:
-            self.did_exam_list = json.load(json_file)
-        # load danh sách bài thi đã tạo
-        with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
-            self.local_list = json.load(json_file)
         # cài đặt quản lý màn hình
         self.sm = ScreenManager(transition=FadeTransition(duration=0))
         self.home_screen = BottomNavigation(name='home')
@@ -89,6 +83,42 @@ class LoginApp(MDApp):
 
     def go_home (self):
         """Vào màn hình chính"""
+        # Load bài thi đã tạo
+        response = self.make_request(
+            'https://tieu0luan0tot0nghiep.000webhostapp.com/get_local_exams.php',
+            {"username": self.user['username'], "password": self.user['password']},
+            'json',
+            'post'
+        )
+        if response!='not available':
+            # online 
+            if response['message'] == "completed":
+                self.local_list = response['localExams']
+            else:
+                self.tolog('lỗi load local exams ', response['message'])
+        else:
+            # offline 
+            # load danh sách bài thi đã tạo
+            with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
+                self.local_list = json.load(json_file)
+        # Load kết quả bài thi
+        response = self.make_request(
+            'https://tieu0luan0tot0nghiep.000webhostapp.com/get_results_exam.php',
+            {"username": self.user['username'], "password": self.user['password']},
+            'json',
+            'post'
+        )
+        if response!='not available':
+            # online 
+            if response['message'] == "completed":
+                self.did_exam_list = response['resultExams']
+            else:
+                self.tolog('lỗi load result exams ', response['message'])
+        else:
+            # offline 
+            # load danh sách kết quả bài thi đã làm
+            with open(f"{self.current_directory}/data/file_save_result_exam.json", 'r', encoding='utf-8') as json_file:
+                self.did_exam_list = json.load(json_file)
         self.chu_de_home('All')
         self.sm.current = 'home'   
     
@@ -223,15 +253,15 @@ class LoginApp(MDApp):
             sleep(2)
             if len(self.eternal_list)!=0:
                 prepend_data()
-        def callback (select_data):
-            # select_data = 'default'
-            # for data in self.eternal_data:
-            #     if data["selected"]:
-            #         select_data = data['text']
-            # if select_data != 'default' and not self.load_bai_thi:
-            #     self.type_exam = 'eternal'
-            #     self.lam_bai_thi(select_data)
-            if not self.load_bai_thi:
+        def callback ():
+            select_data = 'default'
+            for data in self.eternal_data:
+                if data["selected"]:
+                    select_data = data['text']
+            if select_data != 'default' and not self.load_bai_thi:
+                self.type_exam = 'eternal'
+                self.lam_bai_thi(select_data)
+            if select_data != 'default' and not self.load_bai_thi:
                 self.type_exam = 'eternal'
                 self.lam_bai_thi(select_data)
         @mainthread
@@ -239,19 +269,19 @@ class LoginApp(MDApp):
             async def generate_card():
                 for dt in self.eternal_list[self.eternal_start_idx : self.eternal_end_idx]:
                     await asynckivy.sleep(0)
-                    try:
-                        id = dt['id']
-                    except Exception as e:
-                        self.tolog(f'{type(e)} {e}')
-                        id = -1
-                    else:
-                        self.eternal_data.append({
-                                "text": dt['ten_bai_thi'],
-                                "id": id,
-                                "chu_de": dt['chu_de'],
-                                "selected": False,
-                                "callback": lambda x: callback(dt['ten_bai_thi'])
-                            })
+                    # try:
+                    #     id = dt['id']
+                    # except Exception as e:
+                    #     self.tolog(f'{type(e)} {e}')
+                    #     id = -1
+                    # else:
+                    self.eternal_data.append({
+                            "text": dt['ten_bai_thi'],
+                            "id": dt['id'],
+                            "chu_de": dt['chu_de'],
+                            "selected": False,
+                            "callback": lambda x: callback()
+                        })
                 self.eternal_refreshing = False
                 self.eternal_start_idx = self.eternal_end_idx
                 self.eternal_end_idx = self.eternal_end_idx + 30
@@ -279,7 +309,7 @@ class LoginApp(MDApp):
                     except Exception as e:
                         self.tolog(f'{type(e)} {e}')
                         id = -1
-                    else:
+                    finally:
                         self.local_data.append({
                             "text": dt['ten_bai_thi'],
                             "id": id,
@@ -677,12 +707,12 @@ class LoginApp(MDApp):
                         "ket_qua": "",
                         "id": 0,
                         "danh_sach_cau_hoi": []}
-            # Lấy bài thi tương ứng
-            for et_exam in self.eternal_list:
-                if et_exam['ten_bai_thi']==root.name_exam:
-                    exactly_exam_in_eternal = et_exam
-            # Lấy id bài thi
-            ket_qua['id'] = exactly_exam_in_eternal['id']
+            # # Lấy bài thi tương ứng
+            # for et_exam in self.eternal_list:
+            #     if et_exam['ten_bai_thi']==root.name_exam:
+            #         exactly_exam_in_eternal = et_exam
+            # # Lấy id bài thi
+            # ket_qua['id'] = exactly_exam_in_eternal['id']
             tong_cau = len(bai_thi)
             tong_cau_dung = 0
             # bai_thi.reverse()
@@ -692,6 +722,7 @@ class LoginApp(MDApp):
                     c = self.LatexNodes2Text.latex_to_text(c).replace('\xa0', ' ')
                     dap_an_9_xac.append(c)
                 cau_hoi['dap_an_chinh_xac'] = dap_an_9_xac
+                cau_hoi['id'] = cau.id_cau_hoi
                 cau_hoi['cau_hoi'] = cau.ids.CauHoi.text.replace('\xa0', ' ')
                 for dap_an in cau.ids.DapAn.children:
                     if ('Dung' in dap_an.ids and dap_an.ids.Dung.active == True) or 'Dung' not in dap_an.ids:
@@ -704,15 +735,22 @@ class LoginApp(MDApp):
                 cau_hoi['dap_an_chinh_xac'] = []
             ket_qua['ket_qua'] = f'{tong_cau_dung}/{tong_cau}'
             da_ton_tai_ket_qua_thi = False
+            # Lấy id bài thi
+            if self.type_exam=='local':
+                data = [data for data in self.local_data if data['selected']][0]
+            else:
+                data = [data for data in self.eternal_data if data['selected']][0]
+            ket_qua['id'] = data['id']
             # Kiểm tra nếu kết quả đã có thì cập nhật kết quả mới
-            for result in self.did_exam_list:
-                if result['ten_bai_thi'] == ket_qua['ten_bai_thi']:
+            for idx, result in enumerate(self.did_exam_list):
+                if result['id'] == ket_qua['id'] and result['ten_bai_thi'] == ket_qua['ten_bai_thi']:
                     da_ton_tai_ket_qua_thi = True
                     # diem_cu = int((result['ket_qua'].split('/'))[0])
                     # diem_moi = int((ket_qua['ket_qua'].split('/'))[0])
                     # if diem_cu < diem_moi:
-                    result['ket_qua'] = ket_qua['ket_qua']
-                    result['danh_sach_cau_hoi'] = ket_qua['danh_sach_cau_hoi']
+                    # result['ket_qua'] = ket_qua['ket_qua']
+                    # result['danh_sach_cau_hoi'] = ket_qua['danh_sach_cau_hoi']
+                    self.did_exam_list[idx] = ket_qua
                     break
             # Nếu chưa có kết quả cho bài thi này thì thêm vào danh sách đã làm
             if not da_ton_tai_ket_qua_thi:
@@ -720,12 +758,6 @@ class LoginApp(MDApp):
             # with open(f"{self.current_directory}/file_save_result_exam.json", 'w', encoding='utf-8') as json_file:
             #     json.dump(self.did_exam_list, json_file, ensure_ascii=False)
             # Lưu kết quả lên server
-            if self.type_exam=='local':
-                data = [data for data in self.local_data if data['selected']][0]
-            else:
-                data = [data for data in self.eternal_data if data['selected']][0]
-            ket_qua['id'] = data['id']
-            print(ket_qua)
             message = self.make_request(
                 'https://tieu0luan0tot0nghiep.000webhostapp.com/create_a_result.php',
                 {"data": json.dumps(ket_qua), "user": self.user['username'], "password": self.user['password']},
@@ -786,6 +818,12 @@ class LoginApp(MDApp):
             for cau in bai_thi_can_tim['danh_sach_cau_hoi']:
                 await asynckivy.sleep(0)
                 trang_thi = TrangThi()
+                try:
+                    id_cau_hoi = cau['id']
+                except Exception as e:
+                    id_cau_hoi = -1
+                finally:
+                    trang_thi.id_cau_hoi = id_cau_hoi
                 path_media = cau['path_media']
                 if len(path_media) > 0:
                     extension_media = os.path.splitext(path_media)[1]
