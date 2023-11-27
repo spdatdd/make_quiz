@@ -433,8 +433,6 @@ class LoginApp(MDApp):
             else:
                 file_save_result_exam = self.did_exam_list
                 mang_id_bai_thi_ket_qua = [bt['id'] for bt in file_save_result_exam]
-                print(self.type_exam)
-                print(mang_id_bai_thi_ket_qua)
                 if self.type_exam=='eternal':
                     self.local_list = [bt for bt in self.eternal_list if bt['id'] in mang_id_bai_thi_ket_qua]
                 else:
@@ -508,25 +506,22 @@ class LoginApp(MDApp):
 
     def bottom_appbar_search(self):
         def search_action(content):
-            with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
-                data_local_exam = json.load(json_file)
-
+            # with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
+            #     data_local_exam = json.load(json_file)
+            data_local_exam = self.local_list
             array_correct = []
             for data in data_local_exam: 
                 if data["ten_bai_thi"].find(content) != -1:
                     array_correct.append(data)
-
             if len(array_correct) > 0:
                 self.local_start_idx, self.local_end_idx = 0, 30
                 self.local_data.clear(), self.local_list.clear()
                 self.local_list = array_correct
+                # print(len(self.local_list), len(self.temp_local_list))
                 self.local_refresh_data()
-
             else:
                 self.open_snackbar('Không tìm thấy!')
-
             dialog.dismiss()
-        
         content = Custom_content()
         dialog = MDDialog(
             type="custom",
