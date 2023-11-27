@@ -116,7 +116,7 @@ class HomeCard(RecycleDataViewBehavior, MDBoxLayout):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
             if self.selected:
-                Clock.schedule_once(lambda x:self.callback(self.text), 0.1)
+                Clock.schedule_once(lambda x:self.callback(self.text, self.id), 0.1)
             return self.parent.select_with_touch(self.index, touch)
     def apply_selection(self, rv, index, is_selected):
         self.selected = is_selected

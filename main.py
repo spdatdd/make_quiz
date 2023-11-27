@@ -257,16 +257,21 @@ class LoginApp(MDApp):
             sleep(2)
             if len(self.eternal_list)!=0:
                 prepend_data()
-        def callback (x):
-            print('before: ', x)
-            select_data = 'default'
-            for data in self.eternal_data:
-                if data["selected"]:
-                    select_data = data['text']
-            print('after: ',select_data)
+        def callback (x, id):
+            # print('before: ', x)
+            # select_data = 'default'
+            # for data in self.eternal_data:
+            #     if data["selected"]:
+            #         select_data = data['text']
+            # print('after: ',select_data)
             # if select_data != 'default' and not self.load_bai_thi:
             #     self.type_exam = 'eternal'
             #     self.lam_bai_thi(select_data)
+            if not self.load_bai_thi:
+                self.type_exam = 'eternal'
+                print(x, id)
+                self.id_external_duoc_chon = id
+                self.lam_bai_thi(x)
         @mainthread
         def prepend_data():
             async def generate_card():
@@ -283,7 +288,7 @@ class LoginApp(MDApp):
                             "id": dt['id'],
                             "chu_de": dt['chu_de'],
                             "selected": False,
-                            "callback": lambda x: callback(x)
+                            "callback": lambda x, y: callback(x,y)
                         })
                 self.eternal_refreshing = False
                 self.eternal_start_idx = self.eternal_end_idx
@@ -752,11 +757,13 @@ class LoginApp(MDApp):
                 cau_hoi['dap_an_chinh_xac'] = []
             ket_qua['ket_qua'] = f'{tong_cau_dung}/{tong_cau}'
             da_ton_tai_ket_qua_thi = False
-            # Lấy id bài thi
+            # # Lấy id bài thi
             if self.type_exam=='local':
                 data = [data for data in self.local_data if data['selected']][0]
             else:
-                data = [data for data in self.eternal_data if data['selected']][0]
+                print(self.id_external_duoc_chon)
+                data = [data for data in self.eternal_data if data['id']==self.id_external_duoc_chon][0]
+                # data = [data for data in self.eternal_data if data['selected']][0]
             ket_qua['id'] = data['id']
             # Kiểm tra nếu kết quả đã có thì cập nhật kết quả mới
             for idx, result in enumerate(self.did_exam_list):
