@@ -15,6 +15,7 @@ class LoginApp(MDApp):
     LatexNodes2Text = LatexNodes2Text()
     eternal_list = []
     local_list = []
+    temp_local_list = []
     did_exam_list = []
     liked_exam_list = []
     type_exam = 'local'
@@ -101,6 +102,7 @@ class LoginApp(MDApp):
             # load danh sách bài thi đã tạo
             with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
                 self.local_list = json.load(json_file)
+        self.temp_local_list = self.local_list
         # Load kết quả bài thi
         response = self.make_request(
             'https://tieu0luan0tot0nghiep.000webhostapp.com/get_results_exam.php',
@@ -126,6 +128,8 @@ class LoginApp(MDApp):
         self.user['username']=self.user['new_username']=''
         self.user['password']=self.user['new_password']=''
         self.user['avatar']=self.user['new_avatar']=''
+        self.local_list.clear()
+        self.did_exam_list.clear()
         with open(f"{self.current_directory}/data/user.json", 'w', encoding='utf-8') as json_file:
             json.dump(self.user, json_file, ensure_ascii=False)
         self.sm.current = 'login'
@@ -253,17 +257,16 @@ class LoginApp(MDApp):
             sleep(2)
             if len(self.eternal_list)!=0:
                 prepend_data()
-        def callback ():
+        def callback (x):
+            print('before: ', x)
             select_data = 'default'
             for data in self.eternal_data:
                 if data["selected"]:
                     select_data = data['text']
-            if select_data != 'default' and not self.load_bai_thi:
-                self.type_exam = 'eternal'
-                self.lam_bai_thi(select_data)
-            if select_data != 'default' and not self.load_bai_thi:
-                self.type_exam = 'eternal'
-                self.lam_bai_thi(select_data)
+            print('after: ',select_data)
+            # if select_data != 'default' and not self.load_bai_thi:
+            #     self.type_exam = 'eternal'
+            #     self.lam_bai_thi(select_data)
         @mainthread
         def prepend_data():
             async def generate_card():
@@ -280,7 +283,7 @@ class LoginApp(MDApp):
                             "id": dt['id'],
                             "chu_de": dt['chu_de'],
                             "selected": False,
-                            "callback": lambda x: callback()
+                            "callback": lambda x: callback(x)
                         })
                 self.eternal_refreshing = False
                 self.eternal_start_idx = self.eternal_end_idx
@@ -379,7 +382,7 @@ class LoginApp(MDApp):
     def local_list_on_marked(self, root, segment_button: MDSegmentedButton, segment_item: MDSegmentedButtonItem, marked: bool):
         selected_text = segment_item.text
         if selected_text == 'Đã làm':
-            self.bottom_appbar_refresh(root)
+            self.bottom_appbar_refresh(root, 'did')
             root.ids.bottom_appbar.action_items = [
                 MDActionBottomAppBarButton(icon="play")]
             for button in root.ids.bottom_appbar.action_items:
@@ -388,7 +391,7 @@ class LoginApp(MDApp):
                     button.bind(on_release=lambda *arg: self.bottom_appbar_action())
                     break
         if selected_text == 'Đã tạo':
-            self.bottom_appbar_refresh(root)
+            self.bottom_appbar_refresh(root, 'created')
             root.ids.bottom_appbar.action_items = [
                 MDActionBottomAppBarButton(icon="play"),
                 MDActionBottomAppBarButton(icon="delete"),
@@ -404,19 +407,33 @@ class LoginApp(MDApp):
                 if icon == 'magnify':
                     button.bind(on_release=lambda x: self.bottom_appbar_search())
                 if icon == 'refresh':
-                    button.bind(on_release=lambda x: self.bottom_appbar_refresh(root))
+                    button.bind(on_release=lambda x: self.bottom_appbar_refresh(root, 'created'))
                 if icon == 'pencil':
                     button.bind(on_release=lambda x: self.chinh_sua_bai_thi('mod'))
 
-    def bottom_appbar_refresh(self, root):
+    def bottom_appbar_refresh(self, root, type):
         self.local_start_idx, self.local_end_idx = 0, 30
         self.local_data.clear()
-        # if type == 'created':
-        #     with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
-        #         self.local_list = json.load(json_file)
-        # if type == 'did':
-        #     with open(f"{self.current_directory}/data/file_did_exam.json", 'r', encoding='utf-8') as json_file:
-        #         self.local_list = json.load(json_file)
+        if type == 'created':
+            if not self.is_network_available():
+                with open(f"{self.current_directory}/data/file_local_exam.json", 'r', encoding='utf-8') as json_file:
+                    self.local_list = json.load(json_file)
+            else:
+                self.local_list = self.temp_local_list
+        if type == 'did':
+            file_save_result_exam = []
+            if not self.is_network_available():
+                with open(f"{self.current_directory}/data/file_save_result_exam.json", 'r', encoding='utf-8') as json_file:
+                    file_save_result_exam = json.load(json_file)
+            else:
+                file_save_result_exam = self.did_exam_list
+                mang_id_bai_thi_ket_qua = [bt['id'] for bt in file_save_result_exam]
+                print(self.type_exam)
+                print(mang_id_bai_thi_ket_qua)
+                if self.type_exam=='eternal':
+                    self.local_list = [bt for bt in self.eternal_list if bt['id'] in mang_id_bai_thi_ket_qua]
+                else:
+                    self.local_list = [bt for bt in self.local_list if bt['id'] in mang_id_bai_thi_ket_qua]
         if len(self.local_list) == 0:
             try:
                 root.ids.card_list.data.clear()
@@ -960,7 +977,6 @@ class LoginApp(MDApp):
                 else:
                     # offline 
                     self.local_list.append(exam)
-                
             else:
                 # Chưa lưu log cho bài thi chỉnh sửa khi mất kết nối mạng
                 message = self.make_request(
@@ -993,7 +1009,6 @@ class LoginApp(MDApp):
                         self.tolog("failed_add_exam online", exam['ten_bai_thi'])
                 else:
                     self.tolog("failed_deleted_exam", exam['ten_bai_thi']+' '+message)
-                
             dialog.dismiss()
             self.open_snackbar('Lưu bài thi thành công!')
         dialog = MDDialog(
